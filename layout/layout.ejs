@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
   <%- partial('_partial/head') %>
-  <body>
-    <%- partial('_partial/header') %>
-    <main class="main">
-      <%- body %>
-    </main>
+  <body class="<%= is_post() ? 'page-post' : is_home() ? 'page-home' : 'page-default' %>">
+    <div class="site-wrapper">
+      <%- partial('_partial/header') %>
+      <main class="main">
+        <%- body %>
+      </main>
+      <% if (!is_home()) { %>
+        <%- partial('_partial/footer') %>
+      <% } %>
+    </div>
   </body>
 </html>

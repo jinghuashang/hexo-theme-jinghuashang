@@ -1,11 +1,196 @@
-<section class="archive">
-    <ul class="post-archive">
-      <% page.posts.each(function (post) { %>
-        <li class="post-item">
-          <span class="post-date"><%= date(post.date, "YYYY-MM-DD") %></span>
-          <a class="post-title" href="<%- url_for(post.path) %>"><%= post.title %></a>
-        </li>
-      <% }) %>
-    </ul>
-  </section>
-<%- partial('_partial/paginator') %>
+<section class="archive-page">
+  <div class="archive-layout">
+    <!-- Left: Article List -->
+    <div class="archive-main">
+      <div class="archive-header">
+        <span class="section-tag">ARCHIVES</span>
+        <div class="section-line"></div>
+      </div>
+
+      <!-- Category Tabs -->
+      <div class="archive-tabs">
+        <div class="tab-item active" data-category="all">最新</div>
+        <% 
+          var categories = [];
+          page.posts.each(function(post) {
+            if (post.categories && post.categories.length) {
+              post.categories.each(function(cat) {
+                if (categories.indexOf(cat.name) === -1) {
+                  categories.push(cat.name);
+                }
+              });
+            }
+          });
+        %>
+        <% categories.forEach(function(cat) { %>
+          <div class="tab-item" data-category="<%- cat %>"><%- cat %></div>
+        <% }); %>
+      </div>
+
+      <!-- Article List -->
+      <div class="archive-list" id="archive-list">
+        <% page.posts.each(function(post, index) { %>
+          <% 
+            var postCategories = [];
+            if (post.categories && post.categories.length) {
+              post.categories.each(function(cat) {
+                postCategories.push(cat.name);
+              });
+            }
+            var cover = post.cover || '';
+          %>
+          <a class="archive-item" 
+             href="<%- url_for(post.path) %>"
+             data-categories="<%- postCategories.join(',') %>"
+             data-cover="<%- cover %>">
+            <div class="item-index"><%= String(index + 1).padStart(2, '0') %></div>
+            <div class="item-content">
+              <div class="item-meta">
+                <span class="item-date"><%= date(post.date, "YYYY // MM / DD") %></span>
+                <% if (postCategories.length) { %>
+                  <span class="item-category"><%= postCategories[0] %></span>
+                <% } %>
+              </div>
+              <div class="item-title"><%= post.title %></div>
+              <% if (post.excerpt) { %>
+                <div class="item-excerpt"><%- strip_html(post.excerpt).substring(0, 100) %>...</div>
+              <% } %>
+            </div>
+            <div class="item-arrow">
+              <svg viewBox="0 0 7 15" width="7" height="15"><polygon points="0,0 7,7.5 0,15" fill="currentColor"/></svg>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+
+      <%- partial('_partial/paginator') %>
+    </div>
+
+    <!-- Right: Carousel -->
+    <div class="archive-aside">
+      <div class="carousel-container">
+        <div class="carousel-header">
+          <span class="carousel-tag">PREVIEW</span>
+        </div>
+        <div class="carousel-wrapper">
+          <% 
+            var coverPosts = [];
+            page.posts.each(function(post, index) {
+              if (post.cover && index < 8) {
+                coverPosts.push(post);
+              }
+            });
+            if (coverPosts.length === 0) {
+              page.posts.each(function(post, index) {
+                if (index < 3) coverPosts.push(post);
+              });
+            }
+          %>
+          <div class="carousel-slides" id="carousel-slides">
+            <% coverPosts.forEach(function(post, i) { %>
+              <div class="carousel-slide<%= i === 0 ? ' active' : '' %>" data-index="<%= i %>">
+                <% if (post.cover) { %>
+                  <img class="slide-image" src="<%- post.cover %>" alt="<%= post.title %>">
+                <% } else { %>
+                  <div class="slide-placeholder">
+                    <span class="slide-initial"><%= post.title.charAt(0) %></span>
+                  </div>
+                <% } %>
+                <div class="slide-overlay">
+                  <div class="slide-date"><%= date(post.date, "MM/DD") %></div>
+                  <div class="slide-title"><%= post.title %></div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+          <div class="carousel-nav">
+            <button class="carousel-btn carousel-prev" aria-label="Previous">
+              <svg viewBox="0 0 15 7" width="15" height="7"><polygon points="7.5,7 0,0 15,0" fill="currentColor"/></svg>
+            </button>
+            <div class="carousel-dots">
+              <% coverPosts.forEach(function(_, i) { %>
+                <div class="carousel-dot<%= i === 0 ? ' active' : '' %>" data-index="<%= i %>"></div>
+              <% }); %>
+            </div>
+            <button class="carousel-btn carousel-next" aria-label="Next">
+              <svg viewBox="0 0 15 7" width="15" height="7"><polygon points="0,0 7.5,7 15,0" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  // Category filter
+  const tabs = document.querySelectorAll('.archive-tabs .tab-item');
+  const items = document.querySelectorAll('.archive-item');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const category = tab.dataset.category;
+      
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      items.forEach(item => {
+        const itemCategories = item.dataset.categories.split(',');
+        if (category === 'all' || itemCategories.includes(category)) {
+          item.style.display = '';
+          item.style.opacity = '0';
+          setTimeout(() => { item.style.opacity = '1'; }, 50);
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+  
+  // Carousel
+  const slides = document.querySelectorAll('.carousel-slide');
+  const dots = document.querySelectorAll('.carousel-dot');
+  const prevBtn = document.querySelector('.carousel-prev');
+  const nextBtn = document.querySelector('.carousel-next');
+  let currentSlide = 0;
+  let autoplayInterval;
+  
+  function goToSlide(index) {
+    if (index < 0) index = slides.length - 1;
+    if (index >= slides.length) index = 0;
+    
+    slides.forEach(s => s.classList.remove('active'));
+    dots.forEach(d => d.classList.remove('active'));
+    
+    slides[index].classList.add('active');
+    if (dots[index]) dots[index].classList.add('active');
+    
+    currentSlide = index;
+  }
+  
+  function nextSlide() { goToSlide(currentSlide + 1); }
+  function prevSlide() { goToSlide(currentSlide - 1); }
+  function startAutoplay() { autoplayInterval = setInterval(nextSlide, 4000); }
+  function stopAutoplay() { clearInterval(autoplayInterval); }
+  
+  if (prevBtn) prevBtn.addEventListener('click', () => { stopAutoplay(); prevSlide(); startAutoplay(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { stopAutoplay(); nextSlide(); startAutoplay(); });
+  
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      stopAutoplay();
+      goToSlide(parseInt(dot.dataset.index));
+      startAutoplay();
+    });
+  });
+  
+  const carousel = document.querySelector('.carousel-container');
+  if (carousel) {
+    carousel.addEventListener('mouseenter', stopAutoplay);
+    carousel.addEventListener('mouseleave', startAutoplay);
+  }
+  
+  if (slides.length > 1) startAutoplay();
+})();
+</script>

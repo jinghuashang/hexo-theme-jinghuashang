@@ -1,6 +1,34 @@
+# ============================================
+# 菜单配置
+# ============================================
 menu:
   Home: /
   Archives: /archives
-  Github: https://github.com/jinghuashang
-  link: /link
+  About: /about
+  Link: /link
+  Update: /update
 
+# ============================================
+# 网站信息
+# ============================================
+author: jinghuashang
+description: 博客描述
+
+# ============================================
+# 页脚配置
+# ============================================
+footer:
+  # 网站始建年份
+  startYear: 2024
+  # GitHub地址
+  github: https://github.com/jinghuashang
+  # 一言API（随机句子）
+  hitokotoApi: https://v1.hitokoto.cn
+  # 订阅地址
+  atom: /atom.xml
+  # ICP备案号
+  icp: 京ICP备XXXXXXXX号
+  # 萌国备案号
+  mian: 萔ICP备XXXXXXXX号
+  # CC协议
+  cc: https://creativecommons.org/licenses/by-nc-sa/4.0/

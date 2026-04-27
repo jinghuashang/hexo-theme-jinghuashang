@@ -1,16 +1,407 @@
-<section class="posts">
-    <% page.posts.each(function (post) { %>
-      <article class="post">
-        <div class="post-title">
-          <a class="post-title-link" href="<%- url_for(post.path) %>"><%= post.title %></a>
+<div class="slide-container">
+  <!-- Background dots pattern -->
+  <div class="bg-dots"></div>
+  
+  <div class="slide-wrapper">
+    <!-- Page 0: Home -->
+    <section class="slide-page active" data-index="0" data-menu="home">
+      <div class="page-content">
+        <div class="hero-layout">
+          <div class="hero-left">
+            <div class="hero-badge">RHODES ISLAND</div>
+            <h1 class="hero-title"><%= config.title %></h1>
+            <% if (config.subtitle){ %>
+              <p class="hero-subtitle"><%= config.subtitle %></p>
+            <% } %>
+            <div class="hero-deco">
+              <span class="deco-line"></span>
+              <span class="deco-dot"></span>
+              <span class="deco-line"></span>
+            </div>
+          </div>
+          <div class="hero-right">
+            <div class="hero-visual">
+              <div class="hex-grid">
+                <% for(var i=0; i<7; i++) { %>
+                  <div class="hex" style="--i: <%= i %>"></div>
+                <% } %>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="post-content">
-            <%- post.excerpt %>
+      </div>
+    </section>
+
+    <% if (page.posts && page.posts.length > 0) { %>
+      <% var posts = page.posts.toArray(); %>
+      
+      <!-- Collect tags -->
+      <% 
+        var allTags = [];
+        posts.forEach(function(post) {
+          if (post.tags && post.tags.length) {
+            post.tags.each(function(tag) {
+              if (allTags.indexOf(tag.name) === -1) {
+                allTags.push(tag.name);
+              }
+            });
+          }
+        });
+        var displayTags = allTags.slice(0, 3);
+        
+        // First post for default display
+        var firstPost = posts[0];
+      %>
+      
+      <!-- Page 1: Archives -->
+      <section class="slide-page" data-index="1" data-menu="archives">
+        <div class="page-content">
+          <div class="archives-layout">
+            <!-- Left Section -->
+            <div class="archives-left-section">
+              <!-- Tag Tabs -->
+              <div class="archives-tabs">
+                <div class="archive-tab active" data-tag="all">最新</div>
+                <% displayTags.forEach(function(tag) { %>
+                  <div class="archive-tab" data-tag="<%- tag %>"><%- tag %></div>
+                <% }); %>
+              </div>
+              
+              <!-- Article List -->
+              <div class="archives-mini-list" id="archives-list">
+                <% posts.slice(0, 6).forEach(function(post, i) { %>
+                  <% 
+                    var postTags = [];
+                    if (post.tags && post.tags.length) {
+                      post.tags.each(function(tag) { postTags.push(tag.name); });
+                    }
+                    var coverUrl = post.cover || '';
+                  %>
+                  <a class="archives-mini-item" 
+                     href="<%- url_for(post.path) %>"
+                     data-tags="<%- postTags.join(',') %>"
+                     data-cover="<%- coverUrl %>"
+                     data-date="<%= date(post.date, 'YYYY // MM / DD') %>"
+                     data-title="<%= post.title %>"
+                     style="animation-delay: <%= i * 0.05 %>s">
+                    <div class="mini-index"><%= String(i + 1).padStart(2, '0') %></div>
+                    <div class="mini-info">
+                      <div class="mini-date"><%= date(post.date, "MM/DD") %></div>
+                      <div class="mini-title"><%= post.title %></div>
+                    </div>
+                  </a>
+                <% }); %>
+              </div>
+              
+              <!-- View All Button -->
+              <a class="archives-viewall" href="<%- url_for('/archives') %>">
+                <span>查看全部</span>
+                <svg viewBox="0 0 7 15" width="7" height="15"><polygon points="0,0 7,7.5 0,15" fill="currentColor"/></svg>
+              </a>
+              
+              <!-- Current Post Info (changes on hover) -->
+              <div class="archives-post-info" id="archives-post-info">
+                <div class="post-info-date" id="hover-date"><%= date(firstPost.date, "YYYY // MM / DD") %></div>
+                <h3 class="post-info-title" id="hover-title"><%= firstPost.title %></h3>
+                <a class="post-info-link" id="hover-link" href="<%- url_for(firstPost.path) %>">
+                  <span>了解更多</span>
+                  <svg viewBox="0 0 7 15" width="7" height="15"><polygon points="0,0 7,7.5 0,15" fill="currentColor"/></svg>
+                </a>
+              </div>
+            </div>
+            
+            <!-- Right: Cover Display Area -->
+            <div class="archives-cover-section">
+              <div class="cover-fade-edge"></div>
+              <div class="cover-display" id="cover-display">
+                <% if (firstPost.cover) { %>
+                  <img class="cover-image" id="cover-image" src="<%- firstPost.cover %>" alt="<%= firstPost.title %>">
+                <% } else { %>
+                  <div class="cover-placeholder" id="cover-placeholder">
+                    <span class="cover-initial"><%= firstPost.title.charAt(0) %></span>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="post-meta">
-          <span class="post-time"><%- date(post.date, "YYYY-MM-DD") %></span>
+      </section>
+    <% } %>
+
+    <!-- Page: About -->
+    <section class="slide-page" data-index="<%= (page.posts && page.posts.length > 0) ? 2 : 1 %>" data-menu="about">
+      <div class="page-content">
+        <div class="about-layout">
+          <div class="about-header">
+            <div class="section-tag">ABOUT</div>
+            <h2 class="about-title">ABOUT ME</h2>
+          </div>
+          <div class="about-content">
+            <p>这里是关于页面，可以在这里添加关于博主的介绍。</p>
+          </div>
         </div>
-      </article>
-    <% }) %>
-</section>
-<%- paginator('_partial/paginator') %>
+      </div>
+    </section>
+
+    <!-- Page: Link -->
+    <section class="slide-page" data-index="<%= (page.posts && page.posts.length > 0) ? 3 : 2 %>" data-menu="link">
+      <div class="page-content">
+        <div class="links-layout">
+          <div class="links-header">
+            <div class="section-tag">LINKS</div>
+            <h2 class="links-title">FRIEND LINKS</h2>
+          </div>
+          <div class="links-grid">
+            <a class="link-card" href="https://example.com" target="_blank">
+              <div class="link-icon">
+                <svg viewBox="0 0 7 15" width="7" height="15"><polygon points="0,0 7,7.5 0,15" fill="currentColor"/></svg>
+              </div>
+              <div class="link-name">示例链接</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page: Update -->
+    <section class="slide-page" data-index="<%= (page.posts && page.posts.length > 0) ? 4 : 3 %>" data-menu="update">
+      <div class="page-content">
+        <div class="update-layout">
+          <div class="update-header">
+            <div class="section-tag">UPDATE</div>
+            <h2 class="update-title">CHANGELOG</h2>
+          </div>
+          <div class="update-list">
+            <div class="update-item">
+              <div class="update-date">2024 // 01 / 01</div>
+              <div class="update-content">博客初始化，完成基础搭建</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Slide Indicator -->
+<div class="slide-indicator">
+  <% 
+    var totalSlides = 5;
+    for(var i = 0; i < totalSlides; i++) { 
+  %>
+    <div class="indicator-dot<%= i === 0 ? ' active' : '' %>" data-index="<%= i %>"></div>
+  <% } %>
+</div>
+
+<script>
+(function() {
+  const pages = document.querySelectorAll('.slide-page');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const dots = document.querySelectorAll('.indicator-dot');
+  const totalPages = pages.length;
+  let currentPage = 0;
+  let isAnimating = false;
+  let touchStartX = 0;
+
+  // Menu to page mapping
+  const menuMap = {};
+  navLinks.forEach(link => {
+    const menuName = link.dataset.menu;
+    const page = document.querySelector(`.slide-page[data-menu="${menuName}"]`);
+    if (page) {
+      menuMap[menuName] = parseInt(page.dataset.index);
+    }
+  });
+
+  function goToPage(index) {
+    if (isAnimating || index === currentPage || index < 0 || index >= totalPages) return;
+    
+    isAnimating = true;
+    const direction = index > currentPage ? 'next' : 'prev';
+    
+    pages.forEach(p => p.classList.remove('active', 'from-left', 'from-right'));
+    
+    const incoming = pages[index];
+    
+    if (direction === 'next') {
+      incoming.classList.add('from-right');
+    } else {
+      incoming.classList.add('from-left');
+    }
+    
+    void incoming.offsetWidth;
+    
+    incoming.classList.remove('from-right', 'from-left');
+    incoming.classList.add('active');
+    
+    const targetMenu = incoming.dataset.menu;
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.dataset.menu === targetMenu);
+    });
+    
+    dots.forEach(dot => {
+      dot.classList.toggle('active', parseInt(dot.dataset.index) === index);
+    });
+    
+    currentPage = index;
+    
+    setTimeout(() => {
+      isAnimating = false;
+    }, 600);
+  }
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      const menuName = link.dataset.menu;
+      if (menuMap.hasOwnProperty(menuName)) {
+        goToPage(menuMap[menuName]);
+      }
+    });
+  });
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      goToPage(parseInt(dot.dataset.index));
+    });
+  });
+
+  let wheelAccumulator = 0;
+  const wheelThreshold = 50;
+  let wheelTimeout;
+
+  document.addEventListener('wheel', (e) => {
+    if (!document.body.classList.contains('page-home')) return;
+    
+    e.preventDefault();
+    
+    clearTimeout(wheelTimeout);
+    wheelTimeout = setTimeout(() => { wheelAccumulator = 0; }, 200);
+    
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    wheelAccumulator += delta;
+    
+    if (Math.abs(wheelAccumulator) > wheelThreshold) {
+      if (wheelAccumulator > 0) {
+        goToPage(currentPage + 1);
+      } else {
+        goToPage(currentPage - 1);
+      }
+      wheelAccumulator = 0;
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!document.body.classList.contains('page-home')) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        goToPage(currentPage + 1);
+      } else {
+        goToPage(currentPage - 1);
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener('keydown', (e) => {
+    if (!document.body.classList.contains('page-home')) return;
+    
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      goToPage(currentPage + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goToPage(currentPage - 1);
+    }
+  });
+
+  if (navLinks.length > 0) {
+    navLinks[0].classList.add('active');
+  }
+  
+  // Archives Tag Filter
+  const archiveTabs = document.querySelectorAll('.archive-tab');
+  const archiveItems = document.querySelectorAll('.archives-mini-item');
+  
+  archiveTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tag = tab.dataset.tag;
+      
+      // Update active tab
+      archiveTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      // Filter items with animation
+      archiveItems.forEach((item, i) => {
+        const itemTags = item.dataset.tags.split(',');
+        const shouldShow = tag === 'all' || itemTags.includes(tag);
+        
+        if (shouldShow) {
+          item.style.display = '';
+          item.style.animation = 'fadeInItem 0.3s ease forwards';
+          item.style.animationDelay = `${i * 0.05}s`;
+        } else {
+          item.style.animation = 'fadeOutItem 0.2s ease forwards';
+          setTimeout(() => {
+            item.style.display = 'none';
+          }, 200);
+        }
+      });
+    });
+  });
+  
+  // Hover Cover Display
+  const coverImage = document.getElementById('cover-image');
+  const coverPlaceholder = document.getElementById('cover-placeholder');
+  const coverDisplay = document.getElementById('cover-display');
+  const hoverDate = document.getElementById('hover-date');
+  const hoverTitle = document.getElementById('hover-title');
+  const hoverLink = document.getElementById('hover-link');
+  const postInfo = document.getElementById('archives-post-info');
+  
+  archiveItems.forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      const cover = this.dataset.cover;
+      const date = this.dataset.date;
+      const title = this.dataset.title;
+      const path = this.href;
+      
+      // Update cover image
+      if (coverDisplay) {
+        coverDisplay.style.opacity = '0';
+        setTimeout(() => {
+          if (cover && coverImage) {
+            coverImage.src = cover;
+            coverImage.style.display = 'block';
+            if (coverPlaceholder) coverPlaceholder.style.display = 'none';
+          } else if (coverPlaceholder) {
+            coverPlaceholder.querySelector('.cover-initial').textContent = title.charAt(0);
+            coverPlaceholder.style.display = 'flex';
+            if (coverImage) coverImage.style.display = 'none';
+          }
+          coverDisplay.style.opacity = '1';
+        }, 150);
+      }
+      
+      // Update post info
+      if (postInfo) {
+        postInfo.style.opacity = '0';
+        postInfo.style.transform = 'translateY(5px)';
+        setTimeout(() => {
+          if (hoverDate) hoverDate.textContent = date;
+          if (hoverTitle) hoverTitle.textContent = title;
+          if (hoverLink) hoverLink.href = path;
+          postInfo.style.opacity = '1';
+          postInfo.style.transform = 'translateY(0)';
+        }, 150);
+      }
+    });
+  });
+})();
+</script>
